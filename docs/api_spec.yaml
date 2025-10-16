@@ -1,0 +1,631 @@
+openapi: 3.0.0
+info:
+  title: Distributed Synchronization System API
+  description: API untuk distributed locks, queues, dan cache dengan Raft consensus
+  version: 1.0.0
+  contact:
+    name: System Administrator
+    email: admin@example.com
+
+servers:
+  - url: http://localhost:8001
+    description: Node 1
+  - url: http://localhost:8002
+    description: Node 2
+  - url: http://localhost:8003
+    description: Node 3
+
+tags:
+  - name: Lock Manager
+    description: Distributed lock operations
+  - name: Queue Manager
+    description: Distributed queue operations
+  - name: Cache Manager
+    description: Distributed cache operations
+  - name: System
+    description: System monitoring and health
+
+paths:
+  # Lock Manager Endpoints
+  /api/locks/acquire:
+    post:
+      tags:
+        - Lock Manager
+      summary: Acquire a distributed lock
+      description: Request untuk acquire lock (shared atau exclusive)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - lock_id
+                - requester_id
+                - lock_type
+              properties:
+                lock_id:
+                  type: string
+                  description: Unique identifier untuk lock
+                  example: "resource_db_users"
+                requester_id:
+                  type: string
+                  description: ID dari node/client yang request
+                  example: "client_001"
+                lock_type:
+                  type: string
+                  enum: [shared, exclusive]
+                  description: Tipe lock yang diminta
+                  example: "exclusive"
+                timeout:
+                  type: number
+                  format: float
+                  description: Lock timeout dalam detik
+                  default: 30.0
+                  example: 60.0
+      responses:
+        '200':
+          description: Lock acquired successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "acquired"
+                  lock_id:
+                    type: string
+                    example: "resource_db_users"
+                  holder_id:
+                    type: string
+                    example: "client_001"
+                  lock_type:
+                    type: string
+                    example: "exclusive"
+        '202':
+          description: Lock request queued (waiting)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "waiting"
+                  lock_id:
+                    type: string
+                  requester_id:
+                    type: string
+                  queue_position:
+                    type: integer
+        '409':
+          description: Deadlock detected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Not the leader
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "error"
+                  message:
+                    type: string
+                    example: "Not the leader"
+                  leader_id:
+                    type: string
+                    example: "node2"
+
+  /api/locks/release:
+    post:
+      tags:
+        - Lock Manager
+      summary: Release a distributed lock
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - lock_id
+                - holder_id
+              properties:
+                lock_id:
+                  type: string
+                  example: "resource_db_users"
+                holder_id:
+                  type: string
+                  example: "client_001"
+      responses:
+        '200':
+          description: Lock released successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "released"
+                  lock_id:
+                    type: string
+                  holder_id:
+                    type: string
+        '404':
+          description: Lock not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/locks/{lock_id}:
+    get:
+      tags:
+        - Lock Manager
+      summary: Get lock status
+      parameters:
+        - name: lock_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Lock identifier
+      responses:
+        '200':
+          description: Lock status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LockStatus'
+
+  /api/locks:
+    get:
+      tags:
+        - Lock Manager
+      summary: Get all locks
+      responses:
+        '200':
+          description: List of all locks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  locks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LockStatus'
+
+  # Queue Manager Endpoints
+  /api/queues/create:
+    post:
+      tags:
+        - Queue Manager
+      summary: Create a new queue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - queue_name
+              properties:
+                queue_name:
+                  type: string
+                  example: "task_queue"
+      responses:
+        '200':
+          description: Queue created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  queue_name:
+                    type: string
+
+  /api/queues/enqueue:
+    post:
+      tags:
+        - Queue Manager
+      summary: Enqueue a message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - queue_name
+                - message_data
+              properties:
+                queue_name:
+                  type: string
+                  example: "task_queue"
+                message_data:
+                  type: object
+                  example:
+                    task: "process_data"
+                    input: "file.csv"
+                priority:
+                  type: integer
+                  default: 0
+                  example: 1
+      responses:
+        '200':
+          description: Message enqueued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message_id:
+                    type: string
+                  queue_name:
+                    type: string
+                  replicas:
+                    type: array
+                    items:
+                      type: string
+
+  /api/queues/dequeue:
+    post:
+      tags:
+        - Queue Manager
+      summary: Dequeue a message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - queue_name
+                - consumer_id
+              properties:
+                queue_name:
+                  type: string
+                  example: "task_queue"
+                consumer_id:
+                  type: string
+                  example: "worker_001"
+      responses:
+        '200':
+          description: Message dequeued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    $ref: '#/components/schemas/Message'
+        '204':
+          description: Queue is empty
+
+  /api/queues/ack:
+    post:
+      tags:
+        - Queue Manager
+      summary: Acknowledge message delivery
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message_id
+                - consumer_id
+              properties:
+                message_id:
+                  type: string
+                consumer_id:
+                  type: string
+      responses:
+        '200':
+          description: Message acknowledged
+
+  /api/queues/{queue_name}/stats:
+    get:
+      tags:
+        - Queue Manager
+      summary: Get queue statistics
+      parameters:
+        - name: queue_name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Queue statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueueStats'
+
+  # Cache Manager Endpoints
+  /api/cache/get:
+    get:
+      tags:
+        - Cache Manager
+      summary: Get value from cache
+      parameters:
+        - name: key
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "user:123"
+        - name: requester_id
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "app_001"
+      responses:
+        '200':
+          description: Cache hit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "hit"
+                  key:
+                    type: string
+                  value:
+                    type: object
+                  state:
+                    type: string
+                    enum: [modified, exclusive, shared, invalid]
+                  version:
+                    type: integer
+        '404':
+          description: Cache miss
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "miss"
+                  key:
+                    type: string
+
+  /api/cache/put:
+    post:
+      tags:
+        - Cache Manager
+      summary: Put value in cache
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - key
+                - value
+                - requester_id
+              properties:
+                key:
+                  type: string
+                  example: "user:123"
+                value:
+                  type: object
+                  example:
+                    name: "John Doe"
+                    email: "john@example.com"
+                requester_id:
+                  type: string
+                  example: "app_001"
+      responses:
+        '200':
+          description: Value cached
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  key:
+                    type: string
+                  state:
+                    type: string
+                  version:
+                    type: integer
+
+  /api/cache/delete:
+    delete:
+      tags:
+        - Cache Manager
+      summary: Delete from cache
+      parameters:
+        - name: key
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Entry deleted
+
+  /api/cache/stats:
+    get:
+      tags:
+        - Cache Manager
+      summary: Get cache statistics
+      responses:
+        '200':
+          description: Cache statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CacheStats'
+
+  # System Endpoints
+  /api/health:
+    get:
+      tags:
+        - System
+      summary: Health check
+      responses:
+        '200':
+          description: System is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  node_id:
+                    type: string
+                  uptime:
+                    type: number
+
+  /api/metrics:
+    get:
+      tags:
+        - System
+      summary: Get Prometheus metrics
+      responses:
+        '200':
+          description: Metrics in Prometheus format
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/status:
+    get:
+      tags:
+        - System
+      summary: Get node status
+      responses:
+        '200':
+          description: Node status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  node_id:
+                    type: string
+                  state:
+                    type: string
+                    enum: [follower, candidate, leader]
+                  term:
+                    type: integer
+                  leader_id:
+                    type: string
+                  cluster_size:
+                    type: integer
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        message:
+          type: string
+        code:
+          type: string
+
+    LockStatus:
+      type: object
+      properties:
+        lock_id:
+          type: string
+        lock_type:
+          type: string
+          enum: [shared, exclusive]
+        holders:
+          type: array
+          items:
+            type: string
+        waiting_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        last_accessed:
+          type: string
+          format: date-time
+
+    Message:
+      type: object
+      properties:
+        message_id:
+          type: string
+        data:
+          type: object
+        priority:
+          type: integer
+        status:
+          type: string
+          enum: [pending, processing, delivered, failed]
+        created_at:
+          type: string
+          format: date-time
+        attempts:
+          type: integer
+
+    QueueStats:
+      type: object
+      properties:
+        queue_name:
+          type: string
+        size:
+          type: integer
+        pending:
+          type: integer
+        consumers:
+          type: integer
+
+    CacheStats:
+      type: object
+      properties:
+        node_id:
+          type: string
+        policy:
+          type: string
+        capacity:
+          type: integer
+        size:
+          type: integer
+        hits:
+          type: integer
+        misses:
+          type: integer
+        hit_rate:
+          type: string
+        invalidations:
+          type: integer
