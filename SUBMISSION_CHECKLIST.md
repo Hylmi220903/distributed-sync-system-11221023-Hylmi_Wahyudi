@@ -3,8 +3,8 @@
 ## Sistem Paralel dan Terdistribusi
 
 **Deadline:** 26 Oktober 2025, 10:00 WITA  
-**Nama:** [ISI NAMA ANDA]  
-**NIM:** [ISI NIM ANDA]
+**Nama:** Hylmi Wahyudi  
+**NIM:** 11221023
 
 ---
 
@@ -94,7 +94,7 @@
 
 ### Pre-Submission
 
-- [ ] **Test Functionality**
+- [x] **Test Functionality**
   ```bash
   # 1. Run unit tests
   pip install -r requirements.txt
@@ -122,7 +122,7 @@
   # Open http://localhost:9090 (Prometheus)
   ```
 
-- [ ] **Code Quality Check**
+- [x] **Code Quality Check**
   ```bash
   # Run linting
   pylint src/ tests/
@@ -134,20 +134,20 @@
   black src/ tests/ examples/
   ```
 
-- [ ] **Documentation Review**
-  - [ ] README lengkap dan jelas
-  - [ ] Architecture diagram menarik dan informatif
-  - [ ] API spec complete
-  - [ ] Performance analysis dengan data real
+- [x] **Documentation Review**
+  - [x] README lengkap dan jelas
+  - [x] Architecture diagram menarik dan informatif
+  - [x] API spec complete
+  - [x] Performance analysis dengan data real
 
 ### GitHub Repository
 
-- [ ] **Create Public Repository**
-  - [ ] Nama repo: `distributed-sync-system-[NIM]`
-  - [ ] Description: "Distributed Synchronization System with Raft Consensus - Tugas 2 Sistem Terdistribusi ITK"
-  - [ ] Add topics: `distributed-systems`, `raft-consensus`, `docker`, `python`, `itk`
+- [x] **Create Public Repository**
+  - [x] Nama repo: `distributed-sync-system-11221023-Hylmi_Wahyudi`
+  - [x] Description: "Distributed Synchronization System with Raft Consensus - Tugas 2 Sistem Terdistribusi ITK"
+  - [x] Add topics: `distributed-systems`, `raft-consensus`, `docker`, `python`, `itk`
 
-- [ ] **Repository Structure**
+- [x] **Repository Structure**
   ```
   distributed-sync-system/
   ├── src/                      ✓ Application source code
@@ -162,13 +162,13 @@
   └── .env.example              ✓ Environment template
   ```
 
-- [ ] **Repository Content**
-  - [ ] All code committed
-  - [ ] README dengan badges (build status, license, etc.)
-  - [ ] LICENSE file (MIT recommended)
-  - [ ] Comprehensive .gitignore
-  - [ ] Good commit messages
-  - [ ] Tags untuk versioning
+- [x] **Repository Content**
+  - [x] All code committed
+  - [x] README dengan badges (build status, license, etc.)
+  - [x] LICENSE file (MIT recommended)
+  - [x] Comprehensive .gitignore
+  - [x] Good commit messages
+  - [x] Tags untuk versioning
 
 - [ ] **Final Push**
   ```bash
@@ -431,5 +431,5 @@ Setelah submit, consider:
 
 ---
 
-*Last updated: [DATE]*  
+*Last updated: 27 Oktober 2025*  
 *Version: 1.0.0*
