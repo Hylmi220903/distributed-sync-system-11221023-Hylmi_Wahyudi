@@ -1,0 +1,144 @@
+{
+  "dashboard": {
+    "title": "Distributed Sync System - Monitoring",
+    "tags": ["distributed", "raft", "sync"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Queue Size (Messages)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "queue_size",
+            "legendFormat": "{{node}}"
+          }
+        ],
+        "gridPos": {
+          "x": 0,
+          "y": 0,
+          "w": 12,
+          "h": 8
+        }
+      },
+      {
+        "id": 2,
+        "title": "Requests per Second",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(requests_total[1m])",
+            "legendFormat": "{{node}}"
+          }
+        ],
+        "gridPos": {
+          "x": 12,
+          "y": 0,
+          "w": 12,
+          "h": 8
+        }
+      },
+      {
+        "id": 3,
+        "title": "Cache Hit Rate (%)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "(rate(cache_hits[5m]) / (rate(cache_hits[5m]) + rate(cache_misses[5m]))) * 100",
+            "legendFormat": "{{node}}"
+          }
+        ],
+        "gridPos": {
+          "x": 0,
+          "y": 8,
+          "w": 12,
+          "h": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "Active Locks",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "locks_active",
+            "legendFormat": "{{node}}"
+          }
+        ],
+        "gridPos": {
+          "x": 12,
+          "y": 8,
+          "w": 12,
+          "h": 8
+        }
+      },
+      {
+        "id": 5,
+        "title": "Messages Enqueued",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(messages_enqueued)"
+          }
+        ],
+        "gridPos": {
+          "x": 0,
+          "y": 16,
+          "w": 6,
+          "h": 4
+        }
+      },
+      {
+        "id": 6,
+        "title": "Cache Hits",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(cache_hits)"
+          }
+        ],
+        "gridPos": {
+          "x": 6,
+          "y": 16,
+          "w": 6,
+          "h": 4
+        }
+      },
+      {
+        "id": 7,
+        "title": "Total Locks",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(locks_acquired)"
+          }
+        ],
+        "gridPos": {
+          "x": 12,
+          "y": 16,
+          "w": 6,
+          "h": 4
+        }
+      },
+      {
+        "id": 8,
+        "title": "Cluster Size",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "max(alive_nodes)"
+          }
+        ],
+        "gridPos": {
+          "x": 18,
+          "y": 16,
+          "w": 6,
+          "h": 4
+        }
+      }
+    ],
+    "refresh": "5s",
+    "schemaVersion": 27,
+    "version": 1
+  }
+}
