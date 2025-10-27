@@ -5,6 +5,10 @@ Nama: Hylmi Wahyudi
 Kelas: Sistem Paralel dan Terdistribusi B
 NIM : 11221023
 
+LINK VIDEO YOUTUBE DAPAT DIAKSES BERIKUT INI:
+https://youtu.be/dWErnAipjBg
+
+
 # System Architecture
 
 ## Overview

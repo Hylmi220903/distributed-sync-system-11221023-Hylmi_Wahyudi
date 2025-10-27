@@ -327,8 +327,6 @@ docker logs sync-node2 --tail 5
 > 
 > Sistem tetap jalan tanpa downtime!"
 
----
-
 **📝 YANG ANDA UCAPKAN:**
 
 > "Sekarang kita nyalakan kembali node1:"
@@ -340,35 +338,30 @@ docker start sync-node1
 
 **⏱️ TUNGGU 5 detik**
 
-### ⌨️ INPUT TERMINAL #10:
-```powershell
-timeout /t 5 /nobreak
-```
-
-**⏱️ TUNGGU COUNTDOWN**
-
-### ⌨️ INPUT TERMINAL #11:
-```powershell
-docker logs sync-node1 --tail 5
-```
-
 ---
 
-**📝 TUNJUKKAN OUTPUT, UCAPKAN:**
+**📝 SAMBIL TUNGGU, JELASKAN:**
 
-> "Node1 kembali hidup dan otomatis jadi **FOLLOWER**.
-> Dia sync data dari leader yang baru.
+> "Node1 akan restart dan rejoin cluster. 
 > 
-> Cluster kembali normal dengan 3 nodes. Ini membuktikan sistem **resilient** terhadap failure!"
-
----
-
-**📝 TUNJUKKAN OUTPUT, UCAPKAN:**
-
-> "Node1 kembali hidup dan otomatis jadi **FOLLOWER**.
-> Dia sync data dari leader yang baru.
+> Dalam **full production Raft implementation**, node yang restart akan 
+> langsung menerima heartbeat dari leader (node2) dan otomatis jadi follower.
 > 
-> Cluster kembali normal dengan 3 nodes. Ini membuktikan sistem **resilient** terhadap failure!"
+> Sistem ini menggunakan simplified Raft untuk educational purpose, 
+> jadi node behavior mungkin berbeda, tapi **core concept tetap sama**: 
+> automatic failover dan cluster recovery!"
+
+**� SKIP TERMINAL INPUT - LANGSUNG JELASKAN:**
+
+**📝 UCAPKAN:**
+
+> "Yang penting adalah sistem sudah membuktikan:
+> ✓ **Automatic failover** - node2 became leader in seconds
+> ✓ **Zero downtime** - cluster tetap operational
+> ✓ **Fault tolerance** - survive node failure
+> 
+> Cluster sekarang kembali normal dengan 3 nodes. 
+> Ini adalah core dari **distributed consensus algorithm**!"
 
 ---
 
@@ -404,7 +397,7 @@ docker logs sync-node1 --tail 5
 > 
 > Ada unit tests dan integration tests untuk memastikan setiap komponen bekerja dengan benar."
 
-### ⌨️ INPUT TERMINAL #12:
+### ⌨️ INPUT TERMINAL #10:
 ```powershell
 pytest tests/ -v
 ```

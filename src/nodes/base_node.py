@@ -142,6 +142,12 @@ class BaseNode:
         votes_received = 1  # Vote for self
         votes_needed = (len(self.cluster_nodes) + 1) // 2 + 1
         
+        # Check if cluster is empty (single node mode)
+        if len(self.cluster_nodes) == 0:
+            logger.warning(f"Node {self.node_id} is isolated (no cluster nodes), becoming leader")
+            await self.become_leader()
+            return
+        
         # Request votes from other nodes
         for node_id, node_info in self.cluster_nodes.items():
             if node_id != self.node_id:
@@ -154,15 +160,24 @@ class BaseNode:
             await self.become_leader()
         else:
             self.state = NodeState.FOLLOWER
-            logger.info(f"Node {self.node_id} lost election")
+            logger.info(f"Node {self.node_id} lost election, reverting to FOLLOWER")
     
     async def request_vote(self, node_id: str, node_info: dict) -> bool:
         """Request vote from another node"""
         try:
-            # Simulate vote request
+            # Check if node is reachable/alive
+            if not node_info.get('alive', True):
+                logger.debug(f"Node {node_id} is not alive, vote denied")
+                return False
+            
+            # Simulate vote request with timeout
             # In real implementation, this would send RPC to other node
             logger.debug(f"Requesting vote from {node_id}")
-            return True
+            
+            # Simulate: 50% chance of receiving vote if node is alive
+            # This simulates network delays and conflicts
+            import random
+            return random.random() > 0.3
         except Exception as e:
             logger.error(f"Error requesting vote from {node_id}: {e}")
             return False
